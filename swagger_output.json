@@ -7,56 +7,76 @@
   },
   "host": "localhost:5001",
   "basePath": "/",
-  "tags": [],
   "schemes": [
     "http"
   ],
-  "consumes": [],
-  "produces": [],
   "paths": {
-    "/": {
+    "/hello": {
       "get": {
-        "tags": [],
         "description": "",
         "parameters": [],
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/protected": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
       }
     },
     "/user": {
       "get": {
-        "tags": [],
         "description": "",
         "parameters": [],
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       },
       "post": {
-        "tags": [],
         "description": "",
         "parameters": [
           {
-            "name": "obj",
+            "name": "body",
             "in": "body",
             "schema": {
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string",
                   "example": "any"
                 },
                 "firstName": {
-                  "type": "string",
                   "example": "any"
                 },
                 "lastName": {
-                  "type": "string",
                   "example": "any"
                 },
                 "email": {
-                  "type": "string",
                   "example": "any"
                 },
                 "password": {
-                  "type": "string",
                   "example": "any"
                 }
               }
@@ -64,35 +84,33 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "400": {
             "description": "Bad Request"
           }
         }
       },
       "put": {
-        "tags": [],
         "description": "",
         "parameters": [
           {
-            "name": "obj",
+            "name": "body",
             "in": "body",
             "schema": {
               "type": "object",
               "properties": {
                 "firstName": {
-                  "type": "string",
                   "example": "any"
                 },
                 "lastName": {
-                  "type": "string",
                   "example": "any"
                 },
                 "email": {
-                  "type": "string",
                   "example": "any"
                 },
                 "password": {
-                  "type": "string",
                   "example": "any"
                 }
               }
@@ -114,7 +132,6 @@
     },
     "/user/{email}": {
       "get": {
-        "tags": [],
         "description": "",
         "parameters": [
           {
@@ -124,10 +141,13 @@
             "type": "string"
           }
         ],
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       },
       "delete": {
-        "tags": [],
         "description": "",
         "parameters": [
           {
@@ -149,7 +169,36 @@
           }
         }
       }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
     }
-  },
-  "definitions": {}
+  }
 }

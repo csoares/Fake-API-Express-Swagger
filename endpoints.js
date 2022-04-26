@@ -1,3 +1,9 @@
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+// get config vars
+dotenv.config();
+
 module.exports = function (app) {
 
     let users = [{
@@ -38,11 +44,17 @@ module.exports = function (app) {
     }
 
 
-    app.get('/', (req, res) => {
+    app.get('/hello', (req, res) => {
         res.send({
             msg: "Hello World!"
         })
     });
+
+    app.get('/protected', authenticateToken, (req, res) => {
+        res.send({
+            msg: "Hello " + req.user.username
+        })
+    })
 
     app.get('/user', (req, res) => {
         res.send(users)
@@ -59,8 +71,7 @@ module.exports = function (app) {
             email,
             password
         } = req.body;
-        // console.log(req.body);
-        // console.log(`${firstName} ${lastName} ${email} ${password}`);
+
         if (firstName && lastName && email && password) {
             if (!findUserByEmail(email)) {
                 id++;
@@ -119,4 +130,42 @@ module.exports = function (app) {
         }
         res.status(400).send("Must provide an email");
     });
+
+
+    app.post('/auth/login', (req, res) => {
+        const {
+            email,
+            password
+        } = req.body;
+        if (users.some(user => user.email == email && user.password == password)) {
+            const token = generateAccessToken({
+                username: req.body.email
+            });
+            res.json({
+                email: email,
+                token: token
+            });
+            return
+        }
+        res.status(400).send("Email and password do not match");
+    });
+
+
+    function generateAccessToken(username) {
+        return jwt.sign(username, process.env.TOKEN_SECRET, {
+            expiresIn: '1800s'
+        });
+    }
+
+    function authenticateToken(req, res, next) {
+        const token = req.headers['authorization']
+
+        if (token == null) return res.sendStatus(401)
+
+        jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+            if (err) return res.sendStatus(403)
+            req.user = user
+            next()
+        })
+    }
 }

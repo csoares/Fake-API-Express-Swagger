@@ -3,4 +3,6 @@ const swaggerAutogen = require('swagger-autogen')();
 const outputFile = './swagger_output.json';
 const endpointsFiles = ['./endpoints.js'];
 
-swaggerAutogen(outputFile, endpointsFiles);
+swaggerAutogen(outputFile, endpointsFiles, {
+    host: "localhost:5001"
+});
