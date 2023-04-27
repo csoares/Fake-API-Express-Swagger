@@ -5,7 +5,7 @@
     "title": "REST API",
     "description": ""
   },
-  "host": "localhost:5001",
+  "host": "localhost:3000",
   "basePath": "/",
   "schemes": [
     "http"
@@ -45,7 +45,7 @@
         }
       }
     },
-    "/user": {
+    "/users": {
       "get": {
         "description": "",
         "parameters": [],
@@ -130,7 +130,7 @@
         }
       }
     },
-    "/user/{email}": {
+    "/users/{email}": {
       "get": {
         "description": "",
         "parameters": [
