@@ -1,13 +1,19 @@
-version: "3.9"
-
+version: '3'
 services:
-  web:
+  api:
+    image: sample-express-app
     build: .
-    user: "node:node"
-    environment:
-      - APP_PORT=${APP_PORT:-5000}
-    volumes:
-      - "./app:/usr/src/app"
+    networks:
+      - backend
     ports:
-      - "5000:5000"
+      - "3000:3000"
 
+  web-cli:
+    image: sample-express-app
+    networks:
+      - backend
+    command: sh
+
+networks:
+  backend:
+    driver: bridge

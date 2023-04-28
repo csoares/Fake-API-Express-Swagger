@@ -135,13 +135,13 @@ module.exports = function (app) {
     res.status(400).send("Email and password do not match");
   });
 
-  function generateAccessToken(username) {
+  const generateAccessToken = (username) => {
     return jwt.sign(username, process.env.TOKEN_SECRET, {
       expiresIn: "1800s",
     });
-  }
+  };
 
-  function authenticateToken(req, res, next) {
+  const authenticateToken = (req, res, next) => {
     const token = req.headers["authorization"];
 
     if (token == null) return res.sendStatus(401);
@@ -151,5 +151,5 @@ module.exports = function (app) {
       req.user = user;
       next();
     });
-  }
+  };
 };
