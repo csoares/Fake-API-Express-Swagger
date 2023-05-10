@@ -5,6 +5,24 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 module.exports = function (app) {
+  const generateAccessToken = (username) => {
+    return jwt.sign(username, process.env.TOKEN_SECRET, {
+      expiresIn: "1800s",
+    });
+  };
+
+  const authenticateToken = (req, res, next) => {
+    const token = req.headers["authorization"];
+
+    if (token == null) return res.sendStatus(401);
+
+    jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+      if (err) return res.sendStatus(403);
+      req.user = user;
+      next();
+    });
+  };
+
   let users = [
     {
       id: 1,
@@ -44,26 +62,24 @@ module.exports = function (app) {
   };
 
   app.get("/hello", (req, res) => {
+    // #swagger.tags = ['Hello']
     res.send({
       msg: "Hello World!",
     });
   });
 
-  app.get("/protected", authenticateToken, (req, res) => {
-    res.send({
-      msg: "Hello " + req.user.username,
-    });
-  });
-
   app.get("/users", (req, res) => {
+    // #swagger.tags = ['Users']
     res.send(users);
   });
 
   app.get("/users/:email", (req, res) => {
+    // #swagger.tags = ['Users']
     res.send(users.filter((element) => element.email === req.params.email));
   });
 
   app.post("/users", (req, res) => {
+    // #swagger.tags = ['Users']
     const { firstName, lastName, email, password } = req.body;
 
     if (firstName && lastName && email && password) {
@@ -81,6 +97,7 @@ module.exports = function (app) {
   });
 
   app.delete("/users/:email", (req, res) => {
+    // #swagger.tags = ['Users']
     const { email } = req.params;
     if (email) {
       const user = findUserByEmail(email);
@@ -96,6 +113,7 @@ module.exports = function (app) {
   });
 
   app.put("/users", (req, res) => {
+    // #swagger.tags = ['Users']
     const { firstName, lastName, email, password } = req.body;
     if (email) {
       const existingUser = findUserByEmail(email);
@@ -119,6 +137,18 @@ module.exports = function (app) {
   });
 
   app.post("/auth/login", (req, res) => {
+    /*
+    #swagger.tags = ['Auth']
+    #swagger.parameters['obj'] = {
+      in: 'body',
+      description: 'User data.',
+      required: true,
+      schema: {
+          email: "abc@def.com",
+          password: "12345"
+      }
+    }
+    */
     const { email, password } = req.body;
     if (
       users.some((user) => user.email == email && user.password == password)
@@ -135,21 +165,13 @@ module.exports = function (app) {
     res.status(400).send("Email and password do not match");
   });
 
-  const generateAccessToken = (username) => {
-    return jwt.sign(username, process.env.TOKEN_SECRET, {
-      expiresIn: "1800s",
+  app.get("/protected", authenticateToken, (req, res) => {
+    /* 
+    #swagger.tags = ['Auth']
+    #swagger.security = [{"bearerAuth": []}] 
+    */
+    res.send({
+      msg: "Hello " + req.user.username,
     });
-  };
-
-  const authenticateToken = (req, res, next) => {
-    const token = req.headers["authorization"];
-
-    if (token == null) return res.sendStatus(401);
-
-    jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-      if (err) return res.sendStatus(403);
-      req.user = user;
-      next();
-    });
-  };
+  });
 };
