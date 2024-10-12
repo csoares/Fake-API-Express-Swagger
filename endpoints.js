@@ -75,7 +75,13 @@ module.exports = function (app) {
 
   app.get("/users/:email", (req, res) => {
     // #swagger.tags = ['Users']
-    res.send(users.filter((element) => element.email === req.params.email));
+    const user = users.find((element) => element.email === req.params.email);
+
+    if (user) {
+      res.send(user);
+    } else {
+      res.status(404).send("User not found");
+    }
   });
 
   app.post("/users", (req, res) => {
@@ -125,6 +131,33 @@ module.exports = function (app) {
           lastName: lastName,
           password: password,
         };
+        users = [...users.filter((user) => user.email !== email), updatedUser];
+        users.sort(sortUsers);
+        res.status(200).send(updatedUser);
+        return;
+      }
+      res.status(404).send("User does not exist");
+      return;
+    }
+    res.status(400).send("Must provide an email");
+  });
+
+  app.patch("/users/:email", (req, res) => {
+    // #swagger.tags = ['Users']
+    const { email } = req.params;
+    const { firstName, lastName, password } = req.body;
+
+    if (email) {
+      const existingUser = findUserByEmail(email);
+      if (existingUser) {
+        // Update only fields provided in the request
+        const updatedUser = {
+          ...existingUser, // keep existing fields
+          firstName: firstName || existingUser.firstName, // update if provided
+          lastName: lastName || existingUser.lastName, // update if provided
+          password: password || existingUser.password, // update if provided
+        };
+
         users = [...users.filter((user) => user.email !== email), updatedUser];
         users.sort(sortUsers);
         res.status(200).send(updatedUser);
