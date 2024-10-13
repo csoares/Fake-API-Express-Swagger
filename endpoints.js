@@ -30,6 +30,8 @@ module.exports = function (app) {
       lastName: "Silva",
       email: "abc@def.com",
       password: "12345",
+      sex: "male",
+      isAdult: "yes",
     },
     {
       id: 2,
@@ -37,6 +39,8 @@ module.exports = function (app) {
       lastName: "Castro",
       email: "def@ghi.com",
       password: "23456",
+      sex: "male",
+      isAdult: "yes",
     },
     {
       id: 3,
@@ -44,13 +48,16 @@ module.exports = function (app) {
       lastName: "Sousa",
       email: "ghi@jkl.com",
       password: "34567",
+      sex: "female",
+      isAdult: "yes",
     },
   ];
   let id = 3;
 
-  const findUserByEmail = (email) => {
-    return users.find((user) => user.email === email);
+  const findUserById = (id) => {
+    return users.find((user) => user.id === parseInt(id));
   };
+
   const sortUsers = (user1, user2) => {
     if (user1.id < user2.id) {
       return -1;
@@ -73,9 +80,9 @@ module.exports = function (app) {
     res.send(users);
   });
 
-  app.get("/users/:email", (req, res) => {
+  app.get("/users/:id", (req, res) => {
     // #swagger.tags = ['Users']
-    const user = users.find((element) => element.email === req.params.email);
+    const user = findUserById(req.params.id);
 
     if (user) {
       res.send(user);
@@ -86,10 +93,17 @@ module.exports = function (app) {
 
   app.post("/users", (req, res) => {
     // #swagger.tags = ['Users']
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, sex, isAdult } = req.body;
 
-    if (firstName && lastName && email && password) {
-      if (!findUserByEmail(email)) {
+    if (
+      firstName &&
+      lastName &&
+      email &&
+      password &&
+      (sex === "male" || sex === "female") &&
+      (isAdult === "yes" || isAdult === "no")
+    ) {
+      if (!users.find((user) => user.email === email)) {
         id++;
         req.body.id = id;
         users.push(req.body);
@@ -99,39 +113,48 @@ module.exports = function (app) {
       res.status(400).send("Email already exists");
       return;
     }
-    res.status(400).send("All fields must be filled");
+    res.status(400).send("All fields must be filled and valid");
   });
 
-  app.delete("/users/:email", (req, res) => {
+  app.delete("/users/:id", (req, res) => {
     // #swagger.tags = ['Users']
-    const { email } = req.params;
-    if (email) {
-      const user = findUserByEmail(email);
+    const { id } = req.params;
+    if (id) {
+      const user = findUserById(id);
       if (user) {
-        users = users.filter((user) => user.email !== email);
+        users = users.filter((user) => user.id !== parseInt(id));
         res.status(200).send(user);
         return;
       }
       res.status(404).send("User does not exist");
       return;
     }
-    res.status(400).send("Must provide an email");
+    res.status(400).send("Must provide an id");
   });
 
   app.put("/users", (req, res) => {
     // #swagger.tags = ['Users']
-    const { firstName, lastName, email, password } = req.body;
-    if (email) {
-      const existingUser = findUserByEmail(email);
+    const { id, firstName, lastName, email, password, sex, isAdult } = req.body;
+    if (
+      id &&
+      (sex === "male" || sex === "female") &&
+      (isAdult === "yes" || isAdult === "no")
+    ) {
+      const existingUser = findUserById(id);
       if (existingUser) {
         const updatedUser = {
           id: existingUser.id,
-          email: email,
-          firstName: firstName,
-          lastName: lastName,
-          password: password,
+          email: email || existingUser.email,
+          firstName: firstName || existingUser.firstName,
+          lastName: lastName || existingUser.lastName,
+          password: password || existingUser.password,
+          sex: sex || existingUser.sex,
+          isAdult: isAdult || existingUser.isAdult,
         };
-        users = [...users.filter((user) => user.email !== email), updatedUser];
+        users = [
+          ...users.filter((user) => user.id !== parseInt(id)),
+          updatedUser,
+        ];
         users.sort(sortUsers);
         res.status(200).send(updatedUser);
         return;
@@ -139,26 +162,35 @@ module.exports = function (app) {
       res.status(404).send("User does not exist");
       return;
     }
-    res.status(400).send("Must provide an email");
+    res.status(400).send("Must provide valid data");
   });
 
-  app.patch("/users/:email", (req, res) => {
+  app.patch("/users/:id", (req, res) => {
     // #swagger.tags = ['Users']
-    const { email } = req.params;
-    const { firstName, lastName, password } = req.body;
+    const { id } = req.params;
+    const { firstName, lastName, email, password, sex, isAdult } = req.body;
 
-    if (email) {
-      const existingUser = findUserByEmail(email);
+    if (id) {
+      const existingUser = findUserById(id);
       if (existingUser) {
         // Update only fields provided in the request
         const updatedUser = {
           ...existingUser, // keep existing fields
           firstName: firstName || existingUser.firstName, // update if provided
           lastName: lastName || existingUser.lastName, // update if provided
+          email: email || existingUser.email, // update if provided
           password: password || existingUser.password, // update if provided
+          sex: sex === "male" || sex === "female" ? sex : existingUser.sex,
+          isAdult:
+            isAdult === "yes" || isAdult === "no"
+              ? isAdult
+              : existingUser.isAdult,
         };
 
-        users = [...users.filter((user) => user.email !== email), updatedUser];
+        users = [
+          ...users.filter((user) => user.id !== parseInt(id)),
+          updatedUser,
+        ];
         users.sort(sortUsers);
         res.status(200).send(updatedUser);
         return;
@@ -166,7 +198,7 @@ module.exports = function (app) {
       res.status(404).send("User does not exist");
       return;
     }
-    res.status(400).send("Must provide an email");
+    res.status(400).send("Must provide valid data");
   });
 
   app.post("/auth/login", (req, res) => {
